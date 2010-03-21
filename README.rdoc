@@ -1,0 +1,27 @@
+= AsyncEmail
+
+Plugin for sending emails asynchronously from Rails.
+
+Other related plugins:
+
+* ar_mailer
+
+== Requirements
+
+
+== Installation
+
+== Examples
+
+The simplest use of AsyncEmail:
+
+  AsyncEmail::Message.create(:to => 'john@example.com', :body_text => 'hello')
+  
+then (presumably) in a background process:
+
+  AsyncEmail::Message.deliver_messages
+  
+
+== Copyright
+
+Copyright (c) 2010 Steve Downey, released under the MIT license
