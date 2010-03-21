@@ -1,0 +1,8 @@
+Description:
+    Copies db migration and controllers/views for async email tables
+
+Example:
+    ./script/generate async_email
+
+    This will create:
+        db/migrate/<timestamp>_create_async_email_tables.rb

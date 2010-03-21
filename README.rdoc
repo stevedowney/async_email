@@ -1,27 +1,90 @@
 = AsyncEmail
 
 Plugin for sending emails asynchronously from Rails.
+* messages are queued in sql tables
+* messages are normally sent in a background process to not block web request
+* TODO: controllers/views for monitoring queued, sent and error emails
 
-Other related plugins:
+You may want to consider:
 
-* ar_mailer
+* ar_mailer[http://seattlerb.rubyforge.org/ar_mailer/]
 
 == Requirements
 
+* Rails (tested with v2.3.x)
+* Mail[http://rubygems.org/gems/mail] gem (tested with v2.1.3)
 
 == Installation
 
+  script/plugin install git://github.com/stevedowney/async_email.git
+  
+To generate db migration script:
+
+  script/generate async_email
+  
 == Examples
 
 The simplest use of AsyncEmail:
 
   AsyncEmail::Message.create(:to => 'john@example.com', :body_text => 'hello')
-  
-then (presumably) in a background process:
-
   AsyncEmail::Message.deliver_messages
   
+AsyncEmail::Message#deliver_messages is intended to be called in a background 
+process, as the primary goal of AsyncEmail is to not block web reqeusts.
 
+However, you can call it in <tt>script/console</tt> for development/testing
+purposes or from anywhere in your Rails application.  You can call <tt>deliver</tt>
+on a single message as well.
+
+Even if you don't send email in a background process the queuing tables are 
+still used and you can monitor queued, sent and error emails regardless of
+how they are sent.
+  
+=== More Examples
+Plain text and html:
+
+  AsyncEmail::Message.create({
+    :to => 'john@example.com',
+    :subject => 'Testing ...',
+    :body_text => 'Plain text',
+    :body_html => 'this is <b>bold</b>',
+  })
+  
+Body content can come from a file:
+
+  AsyncEmail::Message.create({
+    :to => 'john@example.com',
+    :body_text_filename => 'body.txt',
+    :body_html_filename => 'body.html',
+  })
+
+Attachments:
+
+  AsyncEmail::Message.create({
+    :to => 'john@example.com',
+    :files => ['file-01.txt', 'file-02.txt']
+  })
+
+or to specify the filename in the message body:
+
+  message = AsyncEmail::Message.new(:to => 'john@example.com')
+  message.add_file('file-01.txt', 'daily.rpt')
+  message.save
+  
+  
+== Documentation
+
+Generate the RDoc:
+
+  rake doc:plugins:async_email
+  
+== Tests
+
+Run the tests:
+
+  cd vendor/plugins/async_email
+  rake spec
+  
 == Copyright
 
 Copyright (c) 2010 Steve Downey, released under the MIT license

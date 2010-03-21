@@ -12,6 +12,12 @@ module AsyncEmail #:nodoc:
     has_many :bccs, :class_name => "AsyncEmail::Bcc", :foreign_key => :email_id
     has_many :attachments, :dependent => :destroy, :class_name => "AsyncEmail::Attachment", :foreign_key => :email_id
 
+    validate :recipients_not_empty
+    validate :email_addresses_valid
+    validate :one_body_text_source
+    validate :one_body_html_source
+    
+    EMAIL_REGEXP = /\A[\w\.\+_%-]+@[\w\.-]+\.[a-zA-Z]{2,4}\z/
     STATUS_QUEUED = 'queued'
     STATUS_SENT = 'sent'
     STATUS_ERROR = 'error'
@@ -136,6 +142,38 @@ module AsyncEmail #:nodoc:
         :delivery_attempted_at => Time.now,
         :status => status
       })
+    end
+    
+    # Can't use recipients association since we need to validate unsaved rows.
+    def all_recipients #:nodoc:
+      tos + ccs + bccs
+    end
+    
+    def recipients_not_empty #:nodoc:
+      if all_recipients.empty?
+        errors.add_to_base("You need at least one recipient (To, Cc or Bcc)")
+      end
+    end
+    
+    def email_addresses_valid #:nodoc:
+      all_recipients.each do |recipient|
+        email_address = recipient.email_address
+        unless email_address =~ EMAIL_REGEXP
+          errors.add_to_base("Invalid email format: #{email_address}")
+        end
+      end
+    end
+    
+    def one_body_text_source #:nodoc:
+      if body_text? && body_text_filename?
+        errors.add_to_base("Can only have one of: body_text, body_text_filename")
+      end
+    end
+    
+    def one_body_html_source #:nodoc:
+      if body_html? && body_html_filename?
+        errors.add_to_base("Can only have one of: body_html, body_html_filename")
+      end
     end
     
     # Returns a Mail::Message instance from an AsyncEmail::Message instance.

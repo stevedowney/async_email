@@ -1,1 +1,3 @@
-# Install hook code here
+puts %(***************************************************************)
+puts %(run "script/generate async_email" to generate db migration)
+puts %(***************************************************************)

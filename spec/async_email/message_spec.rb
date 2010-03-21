@@ -10,6 +10,28 @@ describe AsyncEmail::Message do
     @message.status.should == AsyncEmail::Message::STATUS_QUEUED
   end
   
+  it "should require a recipient" do
+    email_address = 'foo@example.com'
+    [:to=, :cc=, :bcc=].each do |setter|
+      @message = AsyncEmail::Message.new
+      @message.should_not be_valid
+      @message.send(setter, email_address)
+      @message.should be_valid
+    end
+  end
+  
+  it "should allow only one of body_text, body_text_filename" do
+    AsyncEmail::Message.new(:to => 'foo@example.com', :body_text => 'foo').should be_valid
+    AsyncEmail::Message.new(:to => 'foo@example.com', :body_text_filename => 'foo').should be_valid
+    AsyncEmail::Message.new(:to => 'foo@example.com', :body_text => 'foo', :body_text_filename => 'foo').should_not be_valid
+  end
+  
+  it "should allow only one of body_html, body_html_filename" do
+    AsyncEmail::Message.new(:to => 'foo@example.com', :body_html => 'foo').should be_valid
+    AsyncEmail::Message.new(:to => 'foo@example.com', :body_html_filename => 'foo').should be_valid
+    AsyncEmail::Message.new(:to => 'foo@example.com', :body_html => 'foo', :body_html_filename => 'foo').should_not be_valid
+  end
+  
   describe 'to' do
     
     it 'to_add' do
